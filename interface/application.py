@@ -685,9 +685,13 @@ def thread_gui():
 
 if __name__ == '__main__':
     file_check()
-    serial_connection = serial.Serial(serial_port, baud_rate, timeout=1)
-    if serial_connection.isOpen():
+    try:
+        serial_connection = serial.Serial(serial_port, baud_rate, timeout=1)
         serial_connection.reset_input_buffer()
+    except:
+        print("Nema serijskog uređaja")
+        sys.exit()
+
 
     gui_thread = threading.Thread(target=thread_gui, name="gui", daemon=True)
     gui_thread.start()
