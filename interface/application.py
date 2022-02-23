@@ -1,4 +1,6 @@
 import os
+import sys
+
 import serial
 import serial.tools.list_ports
 import threading
@@ -52,14 +54,16 @@ HUMIDITY_INTERVAL = 2500
 LIGHT_INTERVAL = 500
 PRESSURE_INTERVAL = 500
 
+WINDOW_X = 1400
+WINDOW_Y = 800
 FIGURE_SIZE = (7, 5)
 DPI = 60
 
 measurement_lut = {
-    'T': ["Temperatura zraka", "°C", [100, 170], [500, 170]],
-    'H': ["Vlažnost zraka", "%", [100, 200], [500, 200]],
-    'P': ["Atmosferski tlak", "hPa", [100, 300], [500, 300]],
-    'L': ["Ambijentalna svjetlost", "lux", [100, 330], [500, 330]]
+    'T': ["Temperatura zraka", "°C", [0.07, 0.2125], [0.36, 0.2125]],
+    'H': ["Vlažnost zraka", "%", [0.07, 0.25], [0.36, 0.25]],
+    'P': ["Atmosferski tlak", "hPa", [0.07, 0.375], [0.36, 0.375]],
+    'L': ["Ambijentalna svjetlost", "lux", [0.07, 0.4125], [0.36, 0.4125]]
 }
 
 TEMP_COMFORT_LOW = float(config['default']['temperature_comfort_low'])
@@ -327,85 +331,85 @@ class MainView(tk.Frame):
         label.pack(padx=20, pady=30)
 
         avg_title = tk.Label(self, text="Prosječne vrijednosti", font=LARGE_FONT)
-        avg_title.place(x=100, y=130)
+        avg_title.place(relx=0.07, rely=0.1625)
 
         current_title = tk.Label(self, text="Trenutne vrijednosti", font=LARGE_FONT)
-        current_title.place(x=100, y=260)
+        current_title.place(relx=0.07, rely=0.325)
 
         button = tk.Button(self, text="Očitanja senzora", command=lambda: controller.show_frame(GraphView))
-        button.place(x=100, y=375)
+        button.place(relx=0.07, rely=0.47)
 
         settings_title = tk.Label(self, text="Postavke", font=LARGE_FONT)
-        settings_title.place(x=1000, y=130)
+        settings_title.place(relx=0.7, rely=0.1625)
 
         serial_ports = serial.tools.list_ports.comports()
         port_label = tk.Label(self, text="Uređaj:", font=MEDIUM_FONT)
-        port_label.place(x=1000, y=180)
+        port_label.place(relx=0.7, rely=0.225)
         self.port_box = ttk.Combobox(self, values=serial_ports)
         self.port_box.set(serial_port)
         self.port_box['state'] = 'readonly'
-        self.port_box.place(x=1100, y=185)
+        self.port_box.place(relx=0.775, rely=0.230)
 
         baud_label = tk.Label(self, text="Baud:", font=MEDIUM_FONT)
-        baud_label.place(x=1000, y=210)
+        baud_label.place(relx=0.7, rely=0.2625)
         self.baud_box = ttk.Combobox(self, values=baud_rates)
         self.baud_box.set(baud_rate)
         self.baud_box['state'] = 'readonly'
-        self.baud_box.place(x=1100, y=215)
+        self.baud_box.place(relx=0.775, rely=0.270)
 
         button = tk.Button(self, text="Spremi", command=self.update_serial)
-        button.place(x=1000, y=250)
+        button.place(relx=0.7, rely=0.3125)
 
         light_label = tk.Label(self, text="Razina svjetlosti pri kojoj se pali rasvjeta", font=SMALL_FONT)
-        light_label.place(x=100, y=475)
+        light_label.place(relx=0.07, rely=0.58)
         self.light_slider = tk.Scale(self, from_=LUX_MIN, to=LUX_MAX, sliderlength=20, length=250, orient=tk.HORIZONTAL)
         self.light_slider.set(LIGHT_THRESHOLD)
-        self.light_slider.place(x=100, y=515)
+        self.light_slider.place(relx=0.07, rely=0.64)
 
         light_button = tk.Button(self, text="Ažuriraj", command=self.update_light)
-        light_button.place(x=100, y=575)
+        light_button.place(relx=0.07, rely=0.72)
 
         temp_label = tk.Label(self, text="Ugodni raspon temperature", font=SMALL_FONT)
-        temp_label.place(x=500, y=475)
+        temp_label.place(relx=0.36, rely=0.58)
         self.temp_slider_lo = tk.Scale(self, from_=TEMP_MIN, to=TEMP_MAX,
                                   sliderlength=20, length=250, resolution=0.1,
                                   label="Donja granica", orient=tk.HORIZONTAL)
 
         self.temp_slider_lo.set(TEMP_COMFORT_LOW)
-        self.temp_slider_lo.place(x=500, y=500)
+        self.temp_slider_lo.place(relx=0.36, rely=0.625)
 
         self.temp_slider_hi = tk.Scale(self, from_=TEMP_MIN, to=TEMP_MAX,
                                   sliderlength=20, length=250, resolution=0.1,
                                   label="Gornja granica", orient=tk.HORIZONTAL)
         self.temp_slider_hi.set(TEMP_COMFORT_HIGH)
-        self.temp_slider_hi.place(x=500, y=570)
+        self.temp_slider_hi.place(relx=0.36, rely=0.72)
 
         temp_button = tk.Button(self, text="Ažuriraj", command=self.update_temp)
-        temp_button.place(x=500, y=635)
+        temp_button.place(relx=0.36, rely=0.82)
 
         self.temp_status = tk.Label(self, text="", font=SMALL_FONT)
-        self.temp_status.place(x=500, y=666)
+        self.temp_status.place(relx=0.36, rely=0.8325)
 
         hum_label = tk.Label(self, text="Ugodni raspon vlažnosti zraka", font=SMALL_FONT)
-        hum_label.place(x=900, y=475)
+        hum_label.place(relx=0.64, rely=0.58)
         self.hum_slider_lo = tk.Scale(self, from_=HUM_MIN, to=HUM_MAX,
                                   sliderlength=20, length=250,
                                   label="Donja granica", orient=tk.HORIZONTAL)
 
         self.hum_slider_lo.set(HUM_COMFORT_LOW)
-        self.hum_slider_lo.place(x=900, y=500)
+        self.hum_slider_lo.place(relx=0.64, rely=0.625)
 
         self.hum_slider_hi = tk.Scale(self, from_=HUM_MIN, to=HUM_MAX,
                                   sliderlength=20, length=250,
                                   label="Gornja granica", orient=tk.HORIZONTAL)
         self.hum_slider_hi.set(HUM_COMFORT_HIGH)
-        self.hum_slider_hi.place(x=900, y=570)
+        self.hum_slider_hi.place(relx=0.64, rely=0.72)
 
         hum_button = tk.Button(self, text="Ažuriraj", command=self.update_hum)
-        hum_button.place(x=900, y=635)
+        hum_button.place(relx=0.64, rely=0.82)
 
         self.hum_status = tk.Label(self, text="", font=SMALL_FONT)
-        self.hum_status.place(x=900, y=666)
+        self.hum_status.place(relx=0.64, rely=0.8325)
 
         self.readings = {}
         self.update_data()
@@ -428,7 +432,7 @@ class MainView(tk.Frame):
 
                 avg_message = f"-{measurement_lut[unit][0]}: " + str(average) + ' ' + measurement_lut[unit][1]
                 avg_label = tk.Label(self, text=avg_message, font=MEDIUM_FONT)
-                avg_label.place(x=measurement_lut[unit][2][0], y=measurement_lut[unit][2][1])
+                avg_label.place(relx=measurement_lut[unit][2][0], rely=measurement_lut[unit][2][1])
                 avg_label.after(1250, avg_label.destroy)
                 self.readings[unit] = average
 
@@ -448,7 +452,7 @@ class MainView(tk.Frame):
 
                 current_message = f"-{measurement_lut[unit][0]}: " + str(current) + ' ' + measurement_lut[unit][1]
                 current_label = tk.Label(self, text=current_message, font=MEDIUM_FONT)
-                current_label.place(x=measurement_lut[unit][2][0], y=measurement_lut[unit][2][1])
+                current_label.place(relx=measurement_lut[unit][2][0], rely=measurement_lut[unit][2][1])
                 current_label.after(1250, current_label.destroy)
                 self.readings[unit] = current
 
@@ -477,7 +481,7 @@ class MainView(tk.Frame):
                     cooling_status = 0
 
                 message_label = tk.Label(self, text=message_text, font=MEDIUM_FONT)
-                message_label.place(x=measurement_lut[unit][3][0], y=measurement_lut[unit][3][1])
+                message_label.place(relx=measurement_lut[unit][3][0], rely=measurement_lut[unit][3][1])
                 message_label.after(1250, message_label.destroy)
 
             elif unit == 'H':
@@ -492,14 +496,14 @@ class MainView(tk.Frame):
                     humidifier_status = 1
 
                 message_label = tk.Label(self, text=message_text, font=MEDIUM_FONT)
-                message_label.place(x=measurement_lut[unit][3][0], y=measurement_lut[unit][3][1])
+                message_label.place(relx=measurement_lut[unit][3][0], rely=measurement_lut[unit][3][1])
                 message_label.after(1250, message_label.destroy)
 
             elif unit == 'L':
                 if value <= LIGHT_THRESHOLD:
                     message_text = "Mračno je, upalite svjetlo"
                     message_label = tk.Label(self, text=message_text, font=MEDIUM_FONT)
-                    message_label.place(x=measurement_lut[unit][3][0], y=measurement_lut[unit][3][1])
+                    message_label.place(relx=measurement_lut[unit][3][0], rely=measurement_lut[unit][3][1])
                     message_label.after(1250, message_label.destroy)
                     light_status = 1
                 else:
@@ -511,11 +515,11 @@ class MainView(tk.Frame):
                 if open_timestamp != "":
                     message_text = "Prozor je zadnje otvaran/zatvaran u: " + open_timestamp
                 message_label = tk.Label(self, text=message_text, font=MEDIUM_FONT)
-                message_label.place(x=measurement_lut[unit][3][0], y=measurement_lut[unit][3][1])
+                message_label.place(relx=measurement_lut[unit][3][0], rely=measurement_lut[unit][3][1])
 
     def update_time(self):
         time_label = tk.Label(self, text=datetime.now().strftime("%H:%M"), font=MEDIUM_FONT)
-        time_label.place(x=1225, y=35)
+        time_label.place(relx=0.875, rely=0.04375)
         time_label.after(1500, time_label.destroy)
 
     def update_light(self):
@@ -571,9 +575,9 @@ class MainView(tk.Frame):
         config.set('default', 'port', serial_port)
         config.set('default', 'baud', baud)
         update_config()
-        
+
         serial_label = tk.Label(self, text="Ponovno pokrenite da bi se učitale promjene", font=SMALL_FONT)
-        serial_label.place(x=1000, y=280)
+        serial_label.place(relx=0.7, rely=0.35)
 
 
 class GraphView(tk.Frame):
@@ -583,35 +587,35 @@ class GraphView(tk.Frame):
         label.pack(padx=20, pady=30)
 
         button = tk.Button(self, text="Natrag", command=lambda: controller.show_frame(MainView))
-        button.place(x=100, y=710)
+        button.place(relx=0.07, rely=0.9)
 
         canvas = FigureCanvasTkAgg(figureTMP116, self)
         canvas.draw()
-        canvas.get_tk_widget().place(x=100, y=100)
+        canvas.get_tk_widget().place(relx=0.07, rely=0.125)
 
         canvas = FigureCanvasTkAgg(figureHDC2010TMP, self)
         canvas.draw()
-        canvas.get_tk_widget().place(x=500, y=100)
+        canvas.get_tk_widget().place(relx=0.35, rely=0.125)
 
         canvas = FigureCanvasTkAgg(figureDPS310TMP, self)
         canvas.draw()
-        canvas.get_tk_widget().place(x=900, y=100)
+        canvas.get_tk_widget().place(relx=0.64, rely=0.125)
 
         canvas = FigureCanvasTkAgg(figureHumidity, self)
         canvas.draw()
-        canvas.get_tk_widget().place(x=100, y=400)
+        canvas.get_tk_widget().place(relx=0.07, rely=0.5)
 
         canvas = FigureCanvasTkAgg(figureOPT, self)
         canvas.draw()
-        canvas.get_tk_widget().place(x=500, y=400)
+        canvas.get_tk_widget().place(relx=0.35, rely=0.5)
 
         canvas = FigureCanvasTkAgg(figurePressure, self)
         canvas.draw()
-        canvas.get_tk_widget().place(x=900, y=400)
+        canvas.get_tk_widget().place(relx=0.64, rely=0.5)
 
     def update_time(self):
         time_label = tk.Label(self, text=datetime.now().strftime("%H:%M"), font=MEDIUM_FONT)
-        time_label.place(x=1225, y=35)
+        time_label.place(relx=0.875, rely=0.04375)
         time_label.after(1500, time_label.destroy)
 
 
@@ -661,27 +665,37 @@ def call_repeatedly(interval, func, *args):
 
 def thread_gui():
     app = Application()
-    app.geometry("1400x800")
+    app.geometry(f"{WINDOW_X}x{WINDOW_Y}")
     aniOPT = animation.FuncAnimation(figureOPT, animateOPT, interval=LIGHT_INTERVAL)
     aniPressure = animation.FuncAnimation(figurePressure, animatePressure, interval=PRESSURE_INTERVAL)
     aniHumidity = animation.FuncAnimation(figureHumidity, animateHumidity, interval=HUMIDITY_INTERVAL)
     aniTMP116 = animation.FuncAnimation(figureTMP116, animateTMP116, interval=TEMPERATURE_INTERVAL)
     aniHDC2010_TMP = animation.FuncAnimation(figureHDC2010TMP, animateHDC2010TMP, interval=TEMPERATURE_INTERVAL)
     aniDPS310_TMP = animation.FuncAnimation(figureDPS310TMP, animateDPS310TMP, interval=TEMPERATURE_INTERVAL)
-    stop_refresh_labels = call_repeatedly(1, app.refresh_labels)
-    stop_write_serial = call_repeatedly(0.25, write_serial)
+
+    def thread_update():
+        stop_refresh_labels = call_repeatedly(1, app.refresh_labels)
+        stop_write_serial = call_repeatedly(0.25, write_serial)
+
+    update_thread = threading.Thread(target=thread_update, name="update", daemon=True)
+    update_thread.start()
     app.mainloop()
-    stop_refresh_labels()
-    stop_write_serial()
+    sys.exit()
+
 
 if __name__ == '__main__':
     file_check()
     serial_connection = serial.Serial(serial_port, baud_rate, timeout=1)
-    if serial_connection.isOpen(): serial_connection.reset_input_buffer()
-    time.sleep(2)
-    threading.Thread(target=thread_gui).start()
+    if serial_connection.isOpen():
+        serial_connection.reset_input_buffer()
 
-    while serial_connection.isOpen():
-        read_serial()
-        clean_buffer(csv_files)
-        time.sleep(0.5)
+    gui_thread = threading.Thread(target=thread_gui, name="gui", daemon=True)
+    gui_thread.start()
+
+    while gui_thread.is_alive():
+        if serial_connection.isOpen():
+            time.sleep(0.5)
+            read_serial()
+            clean_buffer(csv_files)
+
+    sys.exit()
