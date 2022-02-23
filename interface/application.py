@@ -51,13 +51,15 @@ TEMPERATURE_INTERVAL = 2500
 HUMIDITY_INTERVAL = 2500
 LIGHT_INTERVAL = 500
 PRESSURE_INTERVAL = 500
-FIGURE_SIZE = (4, 3)
+
+FIGURE_SIZE = (7, 5)
+DPI = 60
 
 measurement_lut = {
-    'T' : ["Temperatura zraka", "°C", [100, 170], [500, 170]],
-    'H' : ["Vlažnost zraka", "%", [100, 200], [500, 200]],
-    'P' : ["Atmosferski tlak", "hPa", [100, 300], [500, 300]],
-    'L' : ["Ambijentalna svjetlost", "lux", [100, 330], [500, 330]]
+    'T': ["Temperatura zraka", "°C", [100, 170], [500, 170]],
+    'H': ["Vlažnost zraka", "%", [100, 200], [500, 200]],
+    'P': ["Atmosferski tlak", "hPa", [100, 300], [500, 300]],
+    'L': ["Ambijentalna svjetlost", "lux", [100, 330], [500, 330]]
 }
 
 TEMP_COMFORT_LOW = float(config['default']['temperature_comfort_low'])
@@ -73,6 +75,7 @@ HUM_MIN = int(config['default']['humidity_low'])
 HUM_MAX = int(config['default']['humidity_high'])
 LUX_MIN = int(config['default']['light_min'])
 LUX_MAX = int(config['default']['light_max'])
+PRESSURE_JUMP = int(config['default']['pressure_jump_threshold'])
 PRESS_MIN = 700
 PRESS_MAX = 1100
 
@@ -81,6 +84,8 @@ heating_status = 0
 cooling_status = 0
 humidifier_status = 0
 blind_status = 0
+
+open_timestamp = ""
 
 
 def file_check():
@@ -130,7 +135,7 @@ def read_serial():
 
 
 def write_serial():
-    serial_connection.write(f"{light_status}s{blind_status}s{heating_status}s{cooling_status}s{humidifier_status}|"
+    serial_connection.write(f"{light_status}{blind_status}{heating_status}{cooling_status}{humidifier_status}|"
                             .encode('utf-8'))
 
 
@@ -152,16 +157,43 @@ def clean_buffer(filelist):
             buffer.writelines(valid)
         buffer.close()
 
+
 def update_config():
     with open('config.ini', 'w') as configfile:
         config.write(configfile)
 
-figureTMP116 = plt.Figure(figsize=FIGURE_SIZE, dpi=100)
-figureHDC2010TMP = plt.Figure(figsize=FIGURE_SIZE, dpi=100)
-figureDPS310TMP = plt.Figure(figsize=FIGURE_SIZE, dpi=100)
-figurePressure = plt.Figure(figsize=FIGURE_SIZE, dpi=100)
-figureOPT = plt.Figure(figsize=FIGURE_SIZE, dpi=100)
-figureHumidity = plt.Figure(figsize=FIGURE_SIZE, dpi=100)
+
+def check_pressure():
+    global open_timestamp
+    now = datetime.now()
+
+    data = pd.read_csv(dps310_pressure_data, names=column_names)
+    data['Iznos'] = pd.to_numeric(data['Iznos'], errors='coerce')
+    data = data.dropna(subset=['Iznos'])
+
+    recent = []
+
+    if len(data) > 0:
+        timestamps = data['Vrijeme'].values
+        readings = data['Iznos'].values
+
+        for i in range(len(timestamps)):
+            timestamp = datetime.strptime(timestamps[i], "%d/%m/%Y %H:%M:%S")
+            time_diff = now - timestamp
+            if 2 >= time_diff.total_seconds() >= 0:
+                recent.append(float(readings[i]))
+
+    for i in range(1, len(recent)):
+        if abs(recent[i] - recent[i - 1]) > PRESSURE_JUMP:
+            open_timestamp = now.strftime("%H:%M")
+
+
+figureTMP116 = plt.Figure(figsize=FIGURE_SIZE, dpi=DPI)
+figureHDC2010TMP = plt.Figure(figsize=FIGURE_SIZE, dpi=DPI)
+figureDPS310TMP = plt.Figure(figsize=FIGURE_SIZE, dpi=DPI)
+figurePressure = plt.Figure(figsize=FIGURE_SIZE, dpi=DPI)
+figureOPT = plt.Figure(figsize=FIGURE_SIZE, dpi=DPI)
+figureHumidity = plt.Figure(figsize=FIGURE_SIZE, dpi=DPI)
 
 
 def animateOPT(i):
@@ -449,7 +481,7 @@ class MainView(tk.Frame):
                 message_label.after(1250, message_label.destroy)
 
             elif unit == 'H':
-                if HUM_COMFORT_LOW > value > HUM_COMFORT_LOW:
+                if HUM_COMFORT_HIGH > value > HUM_COMFORT_LOW:
                     message_text = "Vlažnost zraka je ugodna"
                     humidifier_status = 0
                 elif value >= HUM_COMFORT_HIGH:
@@ -472,6 +504,14 @@ class MainView(tk.Frame):
                     light_status = 1
                 else:
                     light_status = 0
+
+            elif unit == 'P':
+                check_pressure()
+                message_text = ""
+                if open_timestamp != "":
+                    message_text = "Prozor je zadnje otvaran/zatvaran u: " + open_timestamp
+                message_label = tk.Label(self, text=message_text, font=MEDIUM_FONT)
+                message_label.place(x=measurement_lut[unit][3][0], y=measurement_lut[unit][3][1])
 
     def update_time(self):
         time_label = tk.Label(self, text=datetime.now().strftime("%H:%M"), font=MEDIUM_FONT)

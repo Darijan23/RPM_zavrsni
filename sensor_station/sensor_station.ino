@@ -16,8 +16,8 @@ Adafruit_Sensor *dps_pressure = dps.getPressureSensor();
 #define TMP116_ADDRESS 0x48
 #define TEMP_INTERVAL 5
 #define HUM_INTERVAL 5
-#define LUX_FREQ 2
-#define PRESS_FREQ 2
+#define LUX_FREQ 4
+#define PRESS_FREQ 4
 
 unsigned long long int temp_stamp = 0, hum_stamp = 0, lux_stamp = 0, press_stamp = 0;
 
@@ -89,8 +89,8 @@ void configOPT3001() {
 
 void configDPS310() {
   dps.begin_I2C();
-  dps.configurePressure(DPS310_64HZ, DPS310_128SAMPLES);
-  dps.configureTemperature(DPS310_64HZ, DPS310_128SAMPLES);
+  dps.configurePressure(DPS310_8HZ, DPS310_16SAMPLES);
+  dps.configureTemperature(DPS310_8HZ, DPS310_16SAMPLES);
 }
 
 void setup() {
