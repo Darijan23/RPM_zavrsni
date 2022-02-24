@@ -605,7 +605,7 @@ class GraphView(tk.Frame):
 
         canvas = FigureCanvasTkAgg(figureHDC2010TMP, self)
         canvas.draw()
-        canvas.get_tk_widget().place(relx=0.35, rely=0.125)
+        canvas.get_tk_widget().place(relx=0.36, rely=0.125)
 
         canvas = FigureCanvasTkAgg(figureDPS310TMP, self)
         canvas.draw()
@@ -617,7 +617,7 @@ class GraphView(tk.Frame):
 
         canvas = FigureCanvasTkAgg(figureOPT, self)
         canvas.draw()
-        canvas.get_tk_widget().place(relx=0.35, rely=0.5)
+        canvas.get_tk_widget().place(relx=0.36, rely=0.5)
 
         canvas = FigureCanvasTkAgg(figurePressure, self)
         canvas.draw()
