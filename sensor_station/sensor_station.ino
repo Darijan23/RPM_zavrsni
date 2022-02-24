@@ -21,27 +21,20 @@ Adafruit_Sensor *dps_pressure = dps.getPressureSensor();
 
 unsigned long long int temp_stamp = 0, hum_stamp = 0, lux_stamp = 0, press_stamp = 0;
 
-int light_pin = LED_BUILTIN, humidifier_pin = 9, heating_pin = 10, cooling_pin = 11, blind_pin = 12;
+int light_pin = LED_BUILTIN, humidifier_pin = 10, heating_pin = 11, cooling_pin = 12;
 
 void config_home_devices() {
   pinMode(light_pin, OUTPUT);
   pinMode(humidifier_pin, OUTPUT);
   pinMode(heating_pin, OUTPUT);
   pinMode(cooling_pin, OUTPUT);
-  pinMode(blind_pin, OUTPUT);
 }
 
-void set_home_devices(char light, char blind, char heat, char cool, char hum) {
+void set_home_devices(char light, char heat, char cool, char hum) {
   if (light == '1') {
     digitalWrite(light_pin, HIGH);
   } else {
     digitalWrite(light_pin, LOW);
-  }
-
-  if (blind == '1') {
-    digitalWrite(blind_pin, HIGH);
-  } else {
-    digitalWrite(blind_pin, LOW);
   }
 
   if (heat == '1') {
@@ -117,12 +110,11 @@ void loop() {
     String input = Serial.readStringUntil('|');
   
     char light = input[0];
-    char blind = input[1];
-    char heat = input[2];
-    char cool = input[3];
-    char hum = input[4];
+    char heat = input[1];
+    char cool = input[2];
+    char hum = input[3];
 
-    set_home_devices(light, blind, heat, cool, hum);
+    set_home_devices(light, heat, cool, hum);
   }
   
   if (lux_stamp > millis()) {

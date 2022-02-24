@@ -71,8 +71,6 @@ TEMP_COMFORT_HIGH = float(config['default']['temperature_comfort_high'])
 HUM_COMFORT_LOW = int(config['default']['humidity_comfort_low'])
 HUM_COMFORT_HIGH = int(config['default']['humidity_comfort_high'])
 LIGHT_THRESHOLD = int(config['default']['light_threshold'])
-BLIND_OPEN = datetime.strptime(config['default']['open_blind_time'], "%H:%M")
-BLIND_CLOSE = datetime.strptime(config['default']['close_blind_time'], "%H:%M")
 TEMP_MIN = float(config['default']['temperature_low'])
 TEMP_MAX = float(config['default']['temperature_high'])
 HUM_MIN = int(config['default']['humidity_low'])
@@ -87,7 +85,6 @@ light_status = 0
 heating_status = 0
 cooling_status = 0
 humidifier_status = 0
-blind_status = 0
 
 open_timestamp = ""
 
@@ -139,7 +136,7 @@ def read_serial():
 
 
 def write_serial():
-    serial_connection.write(f"{light_status}{blind_status}{heating_status}{cooling_status}{humidifier_status}|"
+    serial_connection.write(f"{light_status}{heating_status}{cooling_status}{humidifier_status}|"
                             .encode('utf-8'))
 
 
@@ -691,7 +688,6 @@ if __name__ == '__main__':
     except:
         print("Nema serijskog uređaja")
         sys.exit()
-
 
     gui_thread = threading.Thread(target=thread_gui, name="gui", daemon=True)
     gui_thread.start()
