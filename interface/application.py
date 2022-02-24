@@ -467,11 +467,11 @@ class MainView(tk.Frame):
 
         if serial_status:
             if not serial_connection.isOpen():
-                serial_error_label = tk.Label(self, text="Uređaj nije spojen")
-                serial_error_label.place(x=1000, y=310)
+                serial_error_label = tk.Label(self, text="Uređaj nije spojen!", font=MEDIUM_FONT)
+                serial_error_label.place(relx=0.7, rely=0.3875)
         else:
-            serial_error_label = tk.Label(self, text="Uređaj nije pronađen")
-            serial_error_label.place(x=1000, y=310)
+            serial_error_label = tk.Label(self, text="Uređaj nije pronađen!", font=MEDIUM_FONT)
+            serial_error_label.place(relx=0.7, rely=0.3875)
 
         for unit in self.readings:
             value = self.readings[unit]
