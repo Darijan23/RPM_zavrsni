@@ -693,16 +693,16 @@ def thread_gui():
 
 
 if __name__ == '__main__':
-    file_check()
     check_serial()
+    file_check()
 
     if serial_status:
         try:
             serial_connection = serial.Serial(serial_port, baud_rate, timeout=1)
             serial_connection.reset_input_buffer()
         except:
-            print("Nema serijskog uređaja")
-            sys.exit()
+            print("Uspostavljanje komunikacije neuspješno: provjerite vezu")
+            serial_status = False
 
     gui_thread = threading.Thread(target=thread_gui, name="gui", daemon=True)
     gui_thread.start()
