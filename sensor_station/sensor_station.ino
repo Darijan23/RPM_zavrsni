@@ -59,8 +59,6 @@ void set_home_devices(char light, char heat, char cool, char hum) {
 void configHDC2010() {
   ssenseHDC2010.begin();
   ssenseHDC2010.reset();
-  // Set up HDC2010(THS) temperature offset, if required
-  //ssenseHDC2010.setTemperatureOffset(0b11110011);    //-2.08 degrees Celsius
 
   ssenseHDC2010.setMeasurementMode(TEMP_AND_HUMID);
   ssenseHDC2010.setRate(TWO_HZ);
@@ -105,7 +103,7 @@ void setup() {
 }
 
 void loop() {
-  // Čitanje s računala
+  // Čitanje naredbi s računala
   if (Serial.available()) {
     String input = Serial.readStringUntil('|');
   
