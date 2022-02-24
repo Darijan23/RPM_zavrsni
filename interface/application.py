@@ -40,8 +40,10 @@ column_names = ['Vrijeme', 'Senzor', 'Velicina', 'Iznos']
 
 BUFFER_LENGTH = config['default']['buffer_window']
 
+serial_ports = serial.tools.list_ports.comports()
 serial_port = config['default']['port']
 baud_rate = config['default']['baud']
+serial_status = False
 
 baud_rates = [110, 300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 38400, 57600, 115200, 128000, 256000]
 
@@ -78,8 +80,8 @@ HUM_MAX = int(config['default']['humidity_high'])
 LUX_MIN = int(config['default']['light_min'])
 LUX_MAX = int(config['default']['light_max'])
 PRESSURE_JUMP = int(config['default']['pressure_jump_threshold'])
-PRESS_MIN = 700
-PRESS_MAX = 1100
+PRESSURE_MIN = 700
+PRESSURE_MAX = 1100
 
 light_status = 0
 heating_status = 0
@@ -100,6 +102,17 @@ def file_check():
         open(opt3001_data, 'a').close()
         open(dps310_temperature_data, 'a').close()
         open(dps310_pressure_data, 'a').close()
+
+
+def check_serial():
+    global serial_status
+    for port in serial_ports:
+        if serial_ports in port:
+            serial_status = True
+            print("dingus")
+            return
+    serial_status = False
+    print("dongus")
 
 
 def read_serial():
@@ -209,7 +222,6 @@ def animateOPT(i):
 
     figureOPT.clear()
     axOPT = figureOPT.add_subplot(111)
-    #axOPT.plot(timestamps, values, color='red')
     axOPT.plot(values, color='red')
     axOPT.set_title("OPT3001 - ambijentalno osvjetljenje")
     axOPT.set_ylabel("lux")
@@ -236,7 +248,6 @@ def animatePressure(i):
     axPressure.set_ylabel("hPa")
     axPressure.get_yaxis().get_major_formatter().set_useOffset(False)
     axPressure.axes.xaxis.set_ticks([])
-    #axPressure.set_ylim(PRESS_MIN, PRESS_MAX)
     figurePressure.canvas.draw()
 
 
@@ -257,7 +268,6 @@ def animateTMP116(i):
     axTMP116.set_ylabel("°C")
     axTMP116.set_xlabel("Vrijeme")
     axTMP116.axes.xaxis.set_ticks([])
-    #axTMP116.set_ylim(TEMP_MIN, TEMP_MAX)
     figureTMP116.canvas.draw()
 
 
@@ -278,7 +288,6 @@ def animateHDC2010TMP(i):
     axHDC2010TMP.set_ylabel("°C")
     axHDC2010TMP.set_xlabel("Vrijeme")
     axHDC2010TMP.axes.xaxis.set_ticks([])
-    #axHDC2010TMP.set_ylim(TEMP_MIN, TEMP_MAX)
     figureHDC2010TMP.canvas.draw()
 
 
@@ -299,8 +308,8 @@ def animateDPS310TMP(i):
     axDPS310TMP.set_ylabel("°C")
     axDPS310TMP.set_xlabel("Vrijeme")
     axDPS310TMP.axes.xaxis.set_ticks([])
-    #axDPS310TMP.set_ylim(TEMP_MIN, TEMP_MAX)
     figureDPS310TMP.canvas.draw()
+
 
 def animateHumidity(i):
     data = pd.read_csv(hdc2010_humidity_data, names=column_names).values
@@ -321,6 +330,7 @@ def animateHumidity(i):
     axHumidity.axes.xaxis.set_ticks([])
     figureHumidity.canvas.draw()
 
+
 class MainView(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -339,7 +349,6 @@ class MainView(tk.Frame):
         settings_title = tk.Label(self, text="Postavke", font=LARGE_FONT)
         settings_title.place(relx=0.7, rely=0.1625)
 
-        serial_ports = serial.tools.list_ports.comports()
         port_label = tk.Label(self, text="Uređaj:", font=MEDIUM_FONT)
         port_label.place(relx=0.7, rely=0.225)
         self.port_box = ttk.Combobox(self, values=serial_ports)
@@ -454,10 +463,14 @@ class MainView(tk.Frame):
                 self.readings[unit] = current
 
     def check_actions(self):
-        global light_status, blind_status, humidifier_status, heating_status, cooling_status
+        global light_status, humidifier_status, heating_status, cooling_status
 
-        if not serial_connection.isOpen():
-            serial_error_label = tk.Label(self, text="Uređaj nije spojen")
+        if serial_status:
+            if not serial_connection.isOpen():
+                serial_error_label = tk.Label(self, text="Uređaj nije spojen")
+                serial_error_label.place(x=1000, y=310)
+        else:
+            serial_error_label = tk.Label(self, text="Uređaj nije pronađen")
             serial_error_label.place(x=1000, y=310)
 
         for unit in self.readings:
@@ -671,8 +684,10 @@ def thread_gui():
     aniDPS310_TMP = animation.FuncAnimation(figureDPS310TMP, animateDPS310TMP, interval=TEMPERATURE_INTERVAL)
 
     def thread_update():
+        print("bingus")
         stop_refresh_labels = call_repeatedly(1, app.refresh_labels)
-        stop_write_serial = call_repeatedly(0.25, write_serial)
+        if serial_status:
+            stop_write_serial = call_repeatedly(0.25, write_serial)
 
     update_thread = threading.Thread(target=thread_update, name="update", daemon=True)
     update_thread.start()
@@ -682,20 +697,24 @@ def thread_gui():
 
 if __name__ == '__main__':
     file_check()
-    try:
-        serial_connection = serial.Serial(serial_port, baud_rate, timeout=1)
-        serial_connection.reset_input_buffer()
-    except:
-        print("Nema serijskog uređaja")
-        sys.exit()
+    check_serial()
+
+    if serial_status:
+        try:
+            serial_connection = serial.Serial(serial_port, baud_rate, timeout=1)
+            serial_connection.reset_input_buffer()
+        except:
+            print("Nema serijskog uređaja")
+            sys.exit()
 
     gui_thread = threading.Thread(target=thread_gui, name="gui", daemon=True)
     gui_thread.start()
 
     while gui_thread.is_alive():
-        if serial_connection.isOpen():
-            time.sleep(0.5)
-            read_serial()
-            clean_buffer(csv_files)
+        time.sleep(0.5)
+        if serial_status:
+            if serial_connection.isOpen():
+                read_serial()
+                clean_buffer(csv_files)
 
     sys.exit()
