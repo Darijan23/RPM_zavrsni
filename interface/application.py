@@ -107,7 +107,7 @@ def file_check():
 def check_serial():
     global serial_status
     for port in serial_ports:
-        if serial_ports in port:
+        if serial_port in port:
             serial_status = True
             return
     serial_status = False
