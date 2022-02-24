@@ -109,10 +109,8 @@ def check_serial():
     for port in serial_ports:
         if serial_ports in port:
             serial_status = True
-            print("dingus")
             return
     serial_status = False
-    print("dongus")
 
 
 def read_serial():
@@ -684,7 +682,6 @@ def thread_gui():
     aniDPS310_TMP = animation.FuncAnimation(figureDPS310TMP, animateDPS310TMP, interval=TEMPERATURE_INTERVAL)
 
     def thread_update():
-        print("bingus")
         stop_refresh_labels = call_repeatedly(1, app.refresh_labels)
         if serial_status:
             stop_write_serial = call_repeatedly(0.25, write_serial)
