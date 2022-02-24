@@ -23,29 +23,46 @@ config.read('config.ini')
 
 data_path = config['default']['readings_folder']
 tmp116_data = data_path + config['default']['tmp116_readings']
-hdc2010_temperature_data = data_path + config['default']['hdc2010_temperature_readings']
-hdc2010_humidity_data = data_path + config['default']['hdc2010_humidity_readings']
 opt3001_data = data_path + config['default']['opt3001_readings']
-dps310_temperature_data = data_path + config['default']['dps310_temperature_readings']
+hdc2010_humidity_data = data_path + config['default']['hdc2010_humidity_readings']
+hdc2010_temperature_data = data_path + config['default']['hdc2010_temperature_readings']
 dps310_pressure_data = data_path + config['default']['dps310_pressure_readings']
+dps310_temperature_data = data_path + config['default']['dps310_temperature_readings']
 
 csv_files = [tmp116_data,
-             hdc2010_temperature_data,
-             hdc2010_humidity_data,
              opt3001_data,
-             dps310_temperature_data,
-             dps310_pressure_data]
+             hdc2010_humidity_data,
+             hdc2010_temperature_data,
+             dps310_pressure_data,
+             dps310_temperature_data]
 
 column_names = ['Vrijeme', 'Senzor', 'Velicina', 'Iznos']
 
 BUFFER_LENGTH = config['default']['buffer_window']
 
+TEMP_COMFORT_LOW = float(config['default']['temperature_comfort_low'])
+TEMP_COMFORT_HIGH = float(config['default']['temperature_comfort_high'])
+HUM_COMFORT_LOW = int(config['default']['humidity_comfort_low'])
+HUM_COMFORT_HIGH = int(config['default']['humidity_comfort_high'])
+LIGHT_THRESHOLD = int(config['default']['light_threshold'])
+TEMP_MIN = float(config['default']['temperature_low'])
+TEMP_MAX = float(config['default']['temperature_high'])
+HUM_MIN = int(config['default']['humidity_low'])
+HUM_MAX = int(config['default']['humidity_high'])
+LUX_MIN = int(config['default']['light_min'])
+LUX_MAX = int(config['default']['light_max'])
+PRESSURE_JUMP = int(config['default']['pressure_jump_threshold'])
+
+light_status = 0
+heating_status = 0
+cooling_status = 0
+humidifier_status = 0
+
 serial_ports = serial.tools.list_ports.comports()
+baud_rates = [110, 300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 38400, 57600, 115200, 128000, 256000]
 serial_port = config['default']['port']
 baud_rate = config['default']['baud']
 serial_status = False
-
-baud_rates = [110, 300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 38400, 57600, 115200, 128000, 256000]
 
 LARGE_FONT = ("Verdana", 18)
 MEDIUM_FONT = ("Verdana", 14)
@@ -68,26 +85,6 @@ measurement_lut = {
     'L': ["Ambijentalna svjetlost", "lux", [0.07, 0.4125], [0.36, 0.4125]]
 }
 
-TEMP_COMFORT_LOW = float(config['default']['temperature_comfort_low'])
-TEMP_COMFORT_HIGH = float(config['default']['temperature_comfort_high'])
-HUM_COMFORT_LOW = int(config['default']['humidity_comfort_low'])
-HUM_COMFORT_HIGH = int(config['default']['humidity_comfort_high'])
-LIGHT_THRESHOLD = int(config['default']['light_threshold'])
-TEMP_MIN = float(config['default']['temperature_low'])
-TEMP_MAX = float(config['default']['temperature_high'])
-HUM_MIN = int(config['default']['humidity_low'])
-HUM_MAX = int(config['default']['humidity_high'])
-LUX_MIN = int(config['default']['light_min'])
-LUX_MAX = int(config['default']['light_max'])
-PRESSURE_JUMP = int(config['default']['pressure_jump_threshold'])
-PRESSURE_MIN = 700
-PRESSURE_MAX = 1100
-
-light_status = 0
-heating_status = 0
-cooling_status = 0
-humidifier_status = 0
-
 open_timestamp = ""
 
 
@@ -97,11 +94,11 @@ def file_check():
 
     if len(os.listdir(data_path)) == 0:
         open(tmp116_data, 'a').close()
-        open(hdc2010_temperature_data, 'a').close()
-        open(hdc2010_humidity_data, 'a').close()
         open(opt3001_data, 'a').close()
-        open(dps310_temperature_data, 'a').close()
+        open(hdc2010_humidity_data, 'a').close()
+        open(hdc2010_temperature_data, 'a').close()
         open(dps310_pressure_data, 'a').close()
+        open(dps310_temperature_data, 'a').close()
 
 
 def check_serial():
@@ -115,11 +112,11 @@ def check_serial():
 
 def read_serial():
     with open(tmp116_data, 'a', newline='') as tmp116_file, \
-            open(hdc2010_temperature_data, 'a', newline='') as hdc2010_temp_file, \
-            open(hdc2010_humidity_data, 'a', newline='') as hdc2010_hum_file, \
             open(opt3001_data, 'a', newline='') as opt3001_file, \
-            open(dps310_temperature_data, 'a', newline='') as dps310_temp_file, \
-            open(dps310_pressure_data, 'a', newline='') as dps310_pressure_file:
+            open(hdc2010_humidity_data, 'a', newline='') as hdc2010_hum_file, \
+            open(hdc2010_temperature_data, 'a', newline='') as hdc2010_temp_file, \
+            open(dps310_pressure_data, 'a', newline='') as dps310_pressure_file, \
+            open(dps310_temperature_data, 'a', newline='') as dps310_temp_file:
 
         for i in range(len(csv_files)):
             serial_input = serial_connection.readline()
@@ -132,18 +129,18 @@ def read_serial():
 
                 if line_split[0] == 'TMP116':
                     tmp116_file.write(timestamp + ', ' + line)
-                elif line_split[0] == 'HDC2010':
-                    if line_split[1] == 'T':
-                        hdc2010_temp_file.write(timestamp + ', ' + line)
-                    elif line_split[1] == 'H':
-                        hdc2010_hum_file.write(timestamp + ', ' + line)
                 elif line_split[0] == 'OPT3001':
                     opt3001_file.write(timestamp + ', ' + line)
+                elif line_split[0] == 'HDC2010':
+                    if line_split[1] == 'H':
+                        hdc2010_hum_file.write(timestamp + ', ' + line)
+                    elif line_split[1] == 'T':
+                        hdc2010_temp_file.write(timestamp + ', ' + line)
                 elif line_split[0] == 'DPS310':
-                    if line_split[1] == 'T':
-                        dps310_temp_file.write(timestamp + ', ' + line)
-                    elif line_split[1] == 'P':
+                    if line_split[1] == 'P':
                         dps310_pressure_file.write(timestamp + ', ' + line)
+                    elif line_split[1] == 'T':
+                        dps310_temp_file.write(timestamp + ', ' + line)
 
 
 def write_serial():
@@ -547,7 +544,7 @@ class MainView(tk.Frame):
             self.temp_slider_lo.set(TEMP_COMFORT_LOW)
             self.temp_slider_hi.set(TEMP_COMFORT_HIGH)
             self.temp_status = tk.Label(self, text="Donja granica ne može biti veća od gornje", font=SMALL_FONT)
-            self.temp_status.place(x=500, y=666)
+            self.temp_status.place(relx=0.36, rely=0.8325)
             return
 
         TEMP_COMFORT_LOW, TEMP_COMFORT_HIGH = low, high
@@ -565,7 +562,7 @@ class MainView(tk.Frame):
             self.hum_slider_lo.set(HUM_COMFORT_LOW)
             self.hum_slider_hi.set(HUM_COMFORT_HIGH)
             self.hum_status = tk.Label(self, text="Donja granica ne može biti veća od gornje", font=SMALL_FONT)
-            self.hum_status.place(x=900, y=666)
+            self.hum_status.place(relx=0.64, rely=0.8325)
             return
 
         HUM_COMFORT_LOW, HUM_COMFORT_HIGH = low, high
