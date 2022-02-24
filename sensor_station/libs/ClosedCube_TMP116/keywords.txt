@@ -1,0 +1,28 @@
+##################################################################
+# Syntax Coloring Map For
+# ClosedCube TMP116 ±0.2°C (max) High-Accuracy Low-Power I2C Temperature Sensor breakout board
+##################################################################
+
+##################################################################
+# Datatypes (KEYWORD1)
+##################################################################
+
+ClosedCube	KEYWORD1
+Sensor	KEYWORD1
+TMP116	KEYWORD1
+
+
+##################################################################
+# Methods and Functions (KEYWORD2)
+##################################################################
+
+begin	KEYWORD2
+readTemperature	KEYWORD2
+readT	KEYWORD2
+readHighLimit	KEYWORD2
+readLowLimit	KEYWORD2
+writeHighLimit	KEYWORD2
+writeLowLimit	KEYWORD2
+readDeviceId	KEYWORD2
+
+
