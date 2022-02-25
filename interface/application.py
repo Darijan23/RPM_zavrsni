@@ -544,7 +544,7 @@ class MainView(tk.Frame):
             self.temp_slider_lo.set(TEMP_COMFORT_LOW)
             self.temp_slider_hi.set(TEMP_COMFORT_HIGH)
             self.temp_status = tk.Label(self, text="Donja granica ne može biti veća od gornje", font=SMALL_FONT)
-            self.temp_status.place(relx=0.36, rely=0.8325)
+            self.temp_status.place(relx=0.36, rely=0.86)
             return
 
         TEMP_COMFORT_LOW, TEMP_COMFORT_HIGH = low, high
@@ -562,7 +562,7 @@ class MainView(tk.Frame):
             self.hum_slider_lo.set(HUM_COMFORT_LOW)
             self.hum_slider_hi.set(HUM_COMFORT_HIGH)
             self.hum_status = tk.Label(self, text="Donja granica ne može biti veća od gornje", font=SMALL_FONT)
-            self.hum_status.place(relx=0.64, rely=0.8325)
+            self.hum_status.place(relx=0.64, rely=0.86)
             return
 
         HUM_COMFORT_LOW, HUM_COMFORT_HIGH = low, high
