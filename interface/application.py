@@ -68,10 +68,10 @@ LARGE_FONT = ("Verdana", 18)
 MEDIUM_FONT = ("Verdana", 14)
 SMALL_FONT = ("Verdana", 12)
 APP_NAME = 'Pametni stan'
-TEMPERATURE_INTERVAL = 2500
-HUMIDITY_INTERVAL = 2500
-LIGHT_INTERVAL = 500
-PRESSURE_INTERVAL = 500
+TEMPERATURE_INTERVAL = int(config['default']['temperature_interval'])
+HUMIDITY_INTERVAL = int(config['default']['humidity_interval'])
+LIGHT_INTERVAL = int(config['default']['light_interval'])
+PRESSURE_INTERVAL = int(config['default']['pressure_interval'])
 
 WINDOW_X = 1400
 WINDOW_Y = 800
