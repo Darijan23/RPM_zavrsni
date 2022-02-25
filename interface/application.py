@@ -363,7 +363,8 @@ class MainView(tk.Frame):
 
         light_label = tk.Label(self, text="Razina svjetlosti pri kojoj se pali rasvjeta", font=SMALL_FONT)
         light_label.place(relx=0.07, rely=0.58)
-        self.light_slider = tk.Scale(self, from_=LUX_MIN, to=LUX_MAX, sliderlength=20, length=250, orient=tk.HORIZONTAL)
+        self.light_slider = tk.Scale(self, from_=LUX_MIN, to=LUX_MAX, sliderlength=20, length=250,
+                                     resolution=1, orient=tk.HORIZONTAL)
         self.light_slider.set(LIGHT_THRESHOLD)
         self.light_slider.place(relx=0.07, rely=0.64)
 
